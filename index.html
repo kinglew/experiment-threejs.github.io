@@ -6,7 +6,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"></script>
     <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://threejs.org/examples/js/loaders/MTLLoader.js"></script>
-    <script src="https://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -29,18 +28,23 @@
     scene.add(light);
 
     var url = 'https://dl.dropboxusercontent.com/u/15470024/prototypes/models/';
-    var loader = new THREE.OBJMTLLoader();
-    loader.crossOrigin = 'anonymous';
-    loader.load( url + 'radio/radio.obj', url + 'radio/radio.mtl', function(object) {
-        //console.log(object);
-        object.traverse(function(child) {
-            if(child instanceof THREE.Mesh) {
-                child.material.shininess = 0;
-                //console.log(child.material);
-            }
-        });
-        object.position.y = 0;
-        scene.add(object);
+    var loader = new THREE.OBJLoader();
+    var mtlLoader = new THREE.MTLLoader();
+	  mtlLoader.load( url + 'radio/radio.mtl', function (materials) {
+      materials.preload();
+      loader.crossOrigin = 'anonymous';
+      loader.setMaterias(materials);
+      loader.load( url + 'radio/radio.obj', function(object) {
+          //console.log(object);
+          object.traverse(function(child) {
+              if(child instanceof THREE.Mesh) {
+                  child.material.shininess = 0;
+                  //console.log(child.material);
+              }
+          });
+          object.position.y = 0;
+          scene.add(object);
+      });
     });
 
     THREE.ImageUtils.crossOrigin = 'anonymous';
