@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OBJ Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"></script>
+    <script src="http://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+    <script src="http://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+    <script src="http://threejs.org/examples/js/loaders/OBJMTLLoader.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script>
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    //var gui = new dat.GUI();
+    scene.add(new THREE.AmbientLight('#aaaaaa'));
+    camera.position.set(0, 0, 10);
+
+    var light = new THREE.DirectionalLight(0x888888);
+    light.position.set(40, -100, 0);
+    scene.add(light);
+
+    var url = 'https://dl.dropboxusercontent.com/u/15470024/prototypes/models/';
+    var loader = new THREE.OBJMTLLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load( url + 'radio/radio.obj', url + 'radio/radio.mtl', function(object) {
+        //console.log(object);
+        object.traverse(function(child) {
+            if(child instanceof THREE.Mesh) {
+                child.material.shininess = 0;
+                //console.log(child.material);
+            }
+        });
+        object.position.y = 0;
+        scene.add(object);
+    });
+
+    THREE.ImageUtils.crossOrigin = 'anonymous';
+    var texture = THREE.ImageUtils.loadTexture(url + 'rocks/rock_weathered_10_512.png');
+    var normal = THREE.ImageUtils.loadTexture(url + 'rocks/rock_d_01_normal.png', null, function() {
+        console.log('loaded normal map');
+        normal.needsUpdate = true;
+    });
+
+    var loaderB = new THREE.OBJLoader();
+    loaderB.load(url + 'rocks/rock_d_01.obj', function(object) {
+        //console.log(object);
+        object.traverse(function(child) {
+            if(child instanceof THREE.Mesh) {
+                console.log(child.material);
+                //var m = child.material;
+                //console.log('1', JSON.stringify(m));
+                child.material = new THREE.MeshPhongMaterial({
+                    normalMap: normal,
+                    map: texture
+                });
+                //child.material.map = texture;
+                //child.material.normalMap = normal;
+            }
+        });
+        object.position.set(-6, -1, 0);
+        scene.add(object);
+    });
+
+    document.body.appendChild(renderer.domElement);
+
+    var step = 0;
+    var render = function() {
+        window.requestAnimationFrame(render);
+
+        step += 0.01;
+
+        scene.traverse(function(child) {
+            if(child instanceof THREE.Mesh) {
+                child.rotation.y += 0.02;
+                child.rotation.x += 0.01;
+            }
+        });
+
+        renderer.render(scene, camera);
+
+    };
+
+    var resize = function() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', resize);
+
+    resize();
+    render();
+</script>
+</body>
+</html>
